@@ -366,38 +366,50 @@
             function renderGrid(agg) {
     const grid = document.getElementById('storeGrid');
     
-    // LOGIKA RANGKING: Urutkan berdasarkan Omset Terbesar
+    // 1. LOGIKA RANGKING: Urutkan data berdasarkan Omset (o) dari tertinggi ke terendah
     const stores = Object.keys(agg).map(k => ({ 
         name: k, 
         ...agg[k], 
         h: agg[k].o - agg[k].b 
-    })).sort((a,b) => b.o - a.o); // Urut dari Omset (o) tertinggi
+    })).sort((a,b) => b.o - a.o); 
     
+    // 2. RENDER KARTU TOKO
     grid.innerHTML = stores.length ? stores.map((s, index) => {
         return `
         <div class="luxury-glass p-6 rounded-sm border-l-4 ${s.h < 0 ? 'border-expense' : 'border-gold-500'} hover:translate-y-[-4px] transition-all relative overflow-hidden">
-            <div class="absolute top-0 right-0 bg-gold-500 text-navy-900 px-3 py-1 font-black text-[10px] italic shadow-lg">
+            
+            <div class="absolute top-0 right-0 bg-gold-500 text-navy-900 px-3 py-1 font-black text-[10px] italic shadow-lg z-20">
                 RANK #${index + 1}
             </div>
 
             <h4 class="font-serif text-white text-lg mb-4 italic pr-12">${s.name}</h4>
             
             <div class="space-y-2 text-[10px] font-bold uppercase tracking-widest">
-                <div class="flex justify-between"><span>Omset</span><span class="text-white">${formatIDR(s.o)}</span></div>
-                <div class="flex justify-between text-expense"><span>Beban</span><span>-${formatIDR(s.b)}</span></div>
-                <div class="flex justify-between text-blue-400"><span>Stok</span><span>${s.s} Unit</span></div>
+                <div class="flex justify-between">
+                    <span>Omset</span>
+                    <span class="text-white">${formatIDR(s.o)}</span>
+                </div>
+                <div class="flex justify-between text-expense">
+                    <span>Beban</span>
+                    <span>-${formatIDR(s.b)}</span>
+                </div>
+                <div class="flex justify-between text-blue-400">
+                    <span>Stok</span>
+                    <span>${s.s} Unit</span>
+                </div>
                 
                 <div class="flex justify-between pt-3 mt-2 border-t border-white/10 ${s.h < 0 ? 'text-expense' : 'text-gold-500'} text-xs">
-                    <span>Laba Bersih</span><span>${formatIDR(s.h)}</span>
+                    <span>Laba Bersih</span>
+                    <span class="font-bold">${formatIDR(s.h)}</span>
                 </div>
             </div>
         </div>
         `;
     }).join('') : '<div class="col-span-full py-10 text-center text-gray-500 text-xs italic">Menunggu sinkronisasi atau data kosong...</div>';
     
+    // Update chart juga berdasarkan urutan rangking terbaru
     updateChart(stores);
 }
-
         function updateChart(stores) {
             const ctx = document.getElementById('barChart').getContext('2d');
             if (barChartInst) barChartInst.destroy();
