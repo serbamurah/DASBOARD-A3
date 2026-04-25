@@ -362,7 +362,7 @@
             const profitRatio = tO > 0 ? Math.round(((tO - tB) / tO) * 100) : 0;
             document.getElementById('profitPercent').innerText = profitRatio + '%';
             document.getElementById('profitCircle').style.strokeDashoffset = 440 - (440 * Math.max(0, Math.min(100, profitRatio))) / 100;
-
+            
 function renderGrid(agg) {
     const grid = document.getElementById('storeGrid');
     
