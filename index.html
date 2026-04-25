@@ -363,51 +363,69 @@
             document.getElementById('profitPercent').innerText = profitRatio + '%';
             document.getElementById('profitCircle').style.strokeDashoffset = 440 - (440 * Math.max(0, Math.min(100, profitRatio))) / 100;
         }
-            function renderGrid(agg) {
+function renderGrid(agg) {
     const grid = document.getElementById('storeGrid');
     
-    // 1. LOGIKA RANGKING: Urutkan data berdasarkan Omset (o) dari tertinggi ke terendah
+    // 1. URUTKAN DATA: Berdasarkan Omset (o) dari yang tertinggi
     const stores = Object.keys(agg).map(k => ({ 
         name: k, 
         ...agg[k], 
         h: agg[k].o - agg[k].b 
     })).sort((a,b) => b.o - a.o); 
-    
-    // 2. RENDER KARTU TOKO
-    grid.innerHTML = stores.length ? stores.map((s, index) => {
-        return `
+
+    // 2. BUAT HTML UNTUK TABEL RANGKING
+    let rankingTableHTML = `
+        <div class="col-span-full luxury-glass p-6 rounded-sm mb-10 overflow-x-auto custom-scrollbar border-t-2 border-gold-500">
+            <h3 class="font-serif text-gold-500 text-xl italic mb-6 flex items-center gap-2">
+                <i class="ph ph-crown"></i> Ranking Omset Per Toko
+            </h3>
+            <table class="w-full text-left text-[10px] font-bold uppercase tracking-widest">
+                <thead class="border-b border-gold-500/30 text-gold-500">
+                    <tr>
+                        <th class="p-4 text-center">Rank</th>
+                        <th class="p-4">Nama Toko</th>
+                        <th class="p-4 text-right">Omset</th>
+                        <th class="p-4 text-right">Beban</th>
+                        <th class="p-4 text-right">Laba Bersih</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-300">
+                    ${stores.map((s, index) => `
+                        <tr class="border-b border-white/5 hover:bg-gold-500/5 transition-colors">
+                            <td class="p-4 text-center">
+                                <span class="bg-gold-500 text-navy-900 px-2 py-1 rounded-sm font-black italic">#${index + 1}</span>
+                            </td>
+                            <td class="p-4 text-white font-serif text-sm italic">${s.name}</td>
+                            <td class="p-4 text-right text-white">${formatIDR(s.o)}</td>
+                            <td class="p-4 text-right text-expense">-${formatIDR(s.b)}</td>
+                            <td class="p-4 text-right font-bold ${s.h >= 0 ? 'text-gold-500' : 'text-expense'}">${formatIDR(s.h)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    // 3. TAMPILKAN TABEL DAN KARTU DETAIL
+    const cardsHTML = stores.map((s, index) => `
         <div class="luxury-glass p-6 rounded-sm border-l-4 ${s.h < 0 ? 'border-expense' : 'border-gold-500'} hover:translate-y-[-4px] transition-all relative overflow-hidden">
-            
-            <div class="absolute top-0 right-0 bg-gold-500 text-navy-900 px-3 py-1 font-black text-[10px] italic shadow-lg z-20">
+            <div class="absolute top-0 right-0 bg-gold-500 text-navy-900 px-3 py-1 font-black text-[10px] italic shadow-lg">
                 RANK #${index + 1}
             </div>
-
             <h4 class="font-serif text-white text-lg mb-4 italic pr-12">${s.name}</h4>
-            
             <div class="space-y-2 text-[10px] font-bold uppercase tracking-widest">
-                <div class="flex justify-between">
-                    <span>Omset</span>
-                    <span class="text-white">${formatIDR(s.o)}</span>
-                </div>
-                <div class="flex justify-between text-expense">
-                    <span>Beban</span>
-                    <span>-${formatIDR(s.b)}</span>
-                </div>
-                <div class="flex justify-between text-blue-400">
-                    <span>Stok</span>
-                    <span>${s.s} Unit</span>
-                </div>
-                
+                <div class="flex justify-between"><span>Omset</span><span class="text-white">${formatIDR(s.o)}</span></div>
+                <div class="flex justify-between text-expense"><span>Beban</span><span>-${formatIDR(s.b)}</span></div>
+                <div class="flex justify-between text-blue-400"><span>Stok</span><span>${s.s} Unit</span></div>
                 <div class="flex justify-between pt-3 mt-2 border-t border-white/10 ${s.h < 0 ? 'text-expense' : 'text-gold-500'} text-xs">
-                    <span>Laba Bersih</span>
-                    <span class="font-bold">${formatIDR(s.h)}</span>
+                    <span>Laba Bersih</span><span class="font-bold">${formatIDR(s.h)}</span>
                 </div>
             </div>
         </div>
-        `;
-    }).join('') : '<div class="col-span-full py-10 text-center text-gray-500 text-xs italic">Menunggu sinkronisasi atau data kosong...</div>';
+    `).join('');
+
+    grid.innerHTML = stores.length ? (rankingTableHTML + cardsHTML) : '<div class="col-span-full py-10 text-center text-gray-500 text-xs italic">Menunggu sinkronisasi atau data kosong...</div>';
     
-    // Update chart juga berdasarkan urutan rangking terbaru
     updateChart(stores);
 }
         function updateChart(stores) {
