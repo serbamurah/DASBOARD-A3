@@ -131,7 +131,7 @@
                 <canvas id="barChart"></canvas>
             </div>
             <div class="luxury-glass p-6 rounded-sm flex flex-col justify-center items-center text-center">
-                <h3 class="font-serif text-gold-500 text-xl italic mb-4">Efisiensi Profit</h3>
+                <h3 class="font-serif text-gold-500 text-xl italic mb-4">Rasio Laba Bersih</h3>
                 <div class="relative w-40 h-40 flex items-center justify-center">
                     <svg class="w-full h-full transform -rotate-90">
                         <circle cx="80" cy="80" r="70" stroke="currentColor" stroke-width="8" fill="transparent" class="text-navy-900"/>
@@ -366,25 +366,57 @@
             renderGrid(agg);
         }
 
-        function renderGrid(agg) {
-            const grid = document.getElementById('storeGrid');
-            const stores = Object.keys(agg).map(k => ({ name: k, ...agg[k], h: agg[k].o - agg[k].b })).sort((a,b) => b.h - a.h);
+        function renderGrid(agg) {const grid = document.getElementById('storeGrid');
+    
+    // LOGIKA RANGKING: Urutkan berdasarkan Omset Terbesar
+    const stores = Object.keys(agg).map(k => ({ 
+        name: k, 
+        ...agg[k], 
+        h: agg[k].o - agg[k].b 
+    })).sort((a,b) => b.o - a.o); // Urut berdasarkan Omset (o)
+    
+    grid.innerHTML = stores.length ? stores.map((s, index) => {
+        // LOGIKA PERBANDINGAN: Berapa kali lipat Omset dibanding Beban
+        const rasio = s.b > 0 ? (s.o / s.b).toFixed(1) : s.o;
+        const bebanPersen = s.o > 0 ? Math.round((s.b / s.o) * 100) : 0;
+
+        return `
+        <div class="luxury-glass p-6 rounded-sm border-l-4 ${s.h < 0 ? 'border-expense' : 'border-gold-500'} hover:translate-y-[-4px] transition-all relative overflow-hidden">
+            <div class="absolute top-0 right-0 bg-gold-500 text-navy-900 px-3 py-1 font-black text-xs italic shadow-lg">
+                RANK #${index + 1}
+            </div>
+
+            <h4 class="font-serif text-white text-lg mb-4 italic pr-12">${s.name}</h4>
             
-            grid.innerHTML = stores.length ? stores.map(s => `
-                <div class="luxury-glass p-6 rounded-sm border-l-4 ${s.h < 0 ? 'border-expense' : 'border-gold-500'} hover:translate-y-[-4px] transition-all">
-                    <h4 class="font-serif text-white text-lg mb-4 italic">${s.name}</h4>
-                    <div class="space-y-2 text-[10px] font-bold uppercase tracking-widest">
-                        <div class="flex justify-between"><span>Omset</span><span class="text-white">${formatIDR(s.o)}</span></div>
-                        <div class="flex justify-between text-expense"><span>Beban</span><span>-${formatIDR(s.b)}</span></div>
-                        <div class="flex justify-between text-blue-400"><span>Stok</span><span>${s.s} Unit</span></div>
-                        <div class="flex justify-between pt-3 mt-2 border-t border-white/10 ${s.h < 0 ? 'text-expense' : 'text-gold-500'} text-xs">
-                            <span>Hasil</span><span>${formatIDR(s.h)}</span>
-                        </div>
+            <div class="space-y-2 text-[10px] font-bold uppercase tracking-widest">
+                <div class="flex justify-between"><span>Omset</span><span class="text-white">${formatIDR(s.o)}</span></div>
+                <div class="flex justify-between text-expense"><span>Beban</span><span>-${formatIDR(s.b)}</span></div>
+                
+                <div class="py-2 my-2 border-y border-white/5">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-gold-400">Efisiensi (O vs P)</span>
+                        <span class="text-gold-400 text-xs">${rasio}x Lipat</span>
+                    </div>
+                    <div class="w-full bg-navy-900 h-1 rounded-full overflow-hidden">
+                        <div class="h-full bg-gold-500" style="width: ${Math.min(bebanPersen, 100)}%"></div>
+                    </div>
+                    <div class="flex justify-between mt-1 text-[8px] opacity-50">
+                        <span>Beban vs Omset</span>
+                        <span>${bebanPersen}%</span>
                     </div>
                 </div>
-            `).join('') : '<div class="col-span-full py-10 text-center text-gray-500 text-xs italic">Menunggu sinkronisasi atau data kosong...</div>';
-            
-            updateChart(stores);
+
+                <div class="flex justify-between text-blue-400"><span>Stok</span><span>${s.s} Unit</span></div>
+                
+                <div class="flex justify-between pt-3 mt-2 border-t border-white/10 ${s.h < 0 ? 'text-expense' : 'text-gold-500'} text-xs">
+                    <span>Laba Bersih</span><span>${formatIDR(s.h)}</span>
+                </div>
+            </div>
+        </div>
+        `;
+    }).join('') : '<div class="col-span-full py-10 text-center text-gray-500 text-xs italic">Menunggu sinkronisasi atau data kosong...</div>';
+    
+    updateChart(stores);
         }
 
         function updateChart(stores) {
