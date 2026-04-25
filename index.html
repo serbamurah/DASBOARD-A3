@@ -150,9 +150,21 @@
         const appId = 'pta3-dashboard';
         const bulanList = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
         
-        // UPDATE TAHUN SAMPAI 2040
-        const yearsSupported = [];
-        for (let y = 2024; y <= 2040; y++) { yearsSupported.push(String(y)); }
+        // BAGIAN YANG DIUBAH:
+const yearsSupported = [];
+for (let y = 2024; y <= 2040; y++) { 
+    yearsSupported.push(String(y)); 
+}
+
+// Dan pada fungsi window.onload:
+window.onload = () => {
+    const currentYear = String(new Date().getFullYear());
+    // Baris ini akan mengisi dropdown <select> dengan tahun 2024-2040
+    document.getElementById('selYear').innerHTML = yearsSupported.map(y => 
+        `<option value="${y}" ${y===currentYear?'selected':''}>${y}</option>`
+    ).join('');
+    window.initSelectors();
+};
 
         let app, auth, db, user;
         let globalDataCache = {};
